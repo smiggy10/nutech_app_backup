@@ -1,0 +1,46 @@
+name: nutech_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image_picker: ^1.1.2
+  http: ^1.2.2
+  # Upgraded to ^11.0.0 as required by the latest platform interface
+  image_cropper: ^11.0.0 
+  # Set to ^7.0.0 as this is the latest compatible version
+  image_cropper_for_web: ^7.0.0 
+
+  cupertino_icons: ^1.0.8
+  table_calendar: ^3.2.0
+  intl: ^0.20.2
+  device_preview: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/ui/headerdesign.png
+    - assets/images/ui/bottombackground1.png
+    - assets/images/ui/bottombackground2.png
+    - assets/images/branding/nutechlogo1.png
+    - assets/images/branding/nutechlogo2.png
+    - assets/images/avatar.png
+    - assets/images/addimage.png
+    - assets/images/offices/office1.jpg
+    - assets/images/offices/office2.jpg
+    - assets/images/offices/office3.jpg
+    - assets/images/sites/site1.jpg
+    - assets/images/sites/site2.jpg
+    - assets/images/sites/site3.jpg
