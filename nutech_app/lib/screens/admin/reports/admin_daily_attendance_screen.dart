@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:nutech_app/theme/app_theme.dart';
 import 'package:nutech_app/widgets/nutech_background.dart';
 
-class AdminDailyAttendanceScreen extends StatelessWidget {
+class AdminDailyAttendanceScreen extends StatefulWidget {
   const AdminDailyAttendanceScreen({super.key});
 
   static const route = '/admin/daily-attendance';
 
   @override
-  Widget build(BuildContext context) {
-    final rows = <_DailyRow>[
+  State<AdminDailyAttendanceScreen> createState() => _AdminDailyAttendanceScreenState();
+}
+
+class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen> {
+  DateTime _selectedDate = DateTime(2026, 3, 14);
+  late Future<List<_DailyRow>> _attendanceData;
+
+  @override
+  void initState() {
+    super.initState();
+    _attendanceData = _fetchAttendanceData();
+  }
+
+  Future<List<_DailyRow>> _fetchAttendanceData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // TO SHOW "NO RECORDS FOUND": Return an empty list []
+    return [];
+
+    /* // TO SHOW DATA: Uncomment this block later
+    return [
       _DailyRow('Juan Reynolds', '08:05 AM', '05:12 PM', '9.1', 'On Time'),
       _DailyRow('Maria Santos', '08:30 AM', '05:00 PM', '7.5', 'Late'),
       _DailyRow('David Lee', '--', '--', '--', 'Absent'),
@@ -17,6 +37,33 @@ class AdminDailyAttendanceScreen extends StatelessWidget {
       _DailyRow('Michael Torres', '09:00 AM', '--', '--', 'Missed Out'),
       _DailyRow('Emily Wong', '08:15 AM', '05:15 PM', '8.0', 'On Time'),
     ];
+    */
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppTheme.teal),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _attendanceData = _fetchAttendanceData();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String formattedDate = DateFormat('MMMM d, yyyy').format(_selectedDate);
 
     return Scaffold(
       body: NutechBackground(
@@ -26,161 +73,89 @@ class AdminDailyAttendanceScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 2),
-                      Center(
-                        child: Image.asset(
-                          'assets/images/branding/nutechlogo1.png',
-                          height: 64,
-                          fit: BoxFit.contain,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/images/branding/nutechlogo1.png',
+                            height: 64,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const _TitleBar(title: 'Daily Attendance Report'),
-                      const SizedBox(height: 12),
-
-                      _FilterCard(
-                        text: 'Date: March 14, 2026',
-                        actionText: 'Change',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 10),
-                      _FilterCard(
-                        text: 'Department: Sales Team',
-                        actionText: 'Change',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 14),
-
-                      Row(
-                        children: const [
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Present',
-                              value: '28',
-                              color: AppTheme.teal,
+                      _buildTitleSection(),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            _FilterCard(
+                              text: 'Date: $formattedDate',
+                              actionText: 'Change',
+                              onTap: () => _selectDate(context),
                             ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Late',
-                              value: '4',
-                              color: Color(0xFFE74C3C),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Absent',
-                              value: '2',
-                              color: Color(0xFFF39C12),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Overtime',
-                              value: '28',
-                              color: Color(0xFF5DADE2),
-                            ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 20),
+                            FutureBuilder<List<_DailyRow>>(
+                              future: _attendanceData,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.only(top: 50),
+                                    child: CircularProgressIndicator(color: AppTheme.teal),
+                                  );
+                                }
 
-                      const SizedBox(height: 12),
-                      Divider(color: Colors.black.withOpacity(0.25), height: 22),
+                                final data = snapshot.data ?? [];
 
-                      _TableCard(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 520),
-                            child: Table(
-                              defaultVerticalAlignment:
-                                  TableCellVerticalAlignment.middle,
-                              border: TableBorder.all(
-                                color: Colors.black.withOpacity(0.18),
-                                width: 1,
-                              ),
-                              columnWidths: const {
-                                0: FlexColumnWidth(2.2),
-                                1: FlexColumnWidth(1.2),
-                                2: FlexColumnWidth(1.2),
-                                3: FlexColumnWidth(0.9),
-                                4: FlexColumnWidth(1.2),
+                                if (data.isEmpty) {
+                                  return Column(
+                                    children: [
+                                      _buildStatsRow('0', '0', '0', '0'),
+                                      const SizedBox(height: 14),
+                                      _buildSectionDivider(), // Styled Divider applied here
+                                      const SizedBox(height: 10),
+                                      _TableCard(
+                                        child: Container(
+                                          height: 200,
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            "No records found for this period",
+                                            style: TextStyle(
+                                              color: Colors.black.withOpacity(0.5),
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return Column(
+                                  children: [
+                                    _buildStatsRow('28', '4', '2', '28'),
+                                    const SizedBox(height: 14),
+                                    _buildSectionDivider(), // Styled Divider applied here
+                                    const SizedBox(height: 10),
+                                    _TableCard(child: _buildDataTable(data)),
+                                  ],
+                                );
                               },
-                              children: [
-                                _headerRow(),
-                                for (final r in rows) _dataRow(r),
-                              ],
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
-              // Bottom buttons (fixed)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.teal,
-                            foregroundColor: Colors.white,
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Export  Report',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE6E7EA),
-                            foregroundColor: const Color(0xFF5B5F66),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Back',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildBottomButtons(),
             ],
           ),
         ),
@@ -188,125 +163,192 @@ class AdminDailyAttendanceScreen extends StatelessWidget {
     );
   }
 
-  TableRow _headerRow() {
-    Widget cell(String text) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        );
+  // --- Helper Layout Widgets ---
 
+  Widget _buildTitleSection() {
+    return Column(
+      children: [
+        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: const Center(
+            child: Text(
+              'Daily Attendance Report',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+      ],
+    );
+  }
+
+  // NEW: Styled Divider with text in center
+  Widget _buildSectionDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            color: Colors.black.withOpacity(0.25),
+            thickness: 1,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            'Daily Report',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            color: Colors.black.withOpacity(0.25),
+            thickness: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow(String p, String l, String a, String o) {
+    return Row(
+      children: [
+        Expanded(child: _MiniStatCard(label: 'Present', value: p, color: AppTheme.teal)),
+        const SizedBox(width: 10),
+        Expanded(child: _MiniStatCard(label: 'Late', value: l, color: const Color(0xFFE74C3C))),
+        const SizedBox(width: 10),
+        Expanded(child: _MiniStatCard(label: 'Absent', value: a, color: const Color(0xFFF39C12))),
+        const SizedBox(width: 10),
+        Expanded(child: _MiniStatCard(label: 'Overtime', value: o, color: const Color(0xFF5DADE2))),
+      ],
+    );
+  }
+
+  Widget _buildDataTable(List<_DailyRow> rows) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 520),
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          border: TableBorder.all(color: Colors.black.withOpacity(0.18)),
+          columnWidths: const {
+            0: FlexColumnWidth(2.2),
+            1: FlexColumnWidth(1.2),
+            2: FlexColumnWidth(1.2),
+            3: FlexColumnWidth(0.9),
+            4: FlexColumnWidth(1.2),
+          },
+          children: [
+            _headerRow(),
+            ...rows.map((r) => _dataRow(r)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.teal,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Export Report', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE6E7EA),
+                  foregroundColor: const Color(0xFF5B5F66),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TableRow _headerRow() {
     return TableRow(
       decoration: const BoxDecoration(color: Color(0xFFE7E7E7)),
-      children: [
-        cell('Employee'),
-        cell('Time In'),
-        cell('Time Out'),
-        cell('Hours'),
-        cell('Status'),
-      ],
+      children: ['Employee', 'Time In', 'Time Out', 'Hours', 'Status'].map((t) => 
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          child: Text(t, style: const TextStyle(fontWeight: FontWeight.w800)),
+        )
+      ).toList(),
     );
   }
 
   TableRow _dataRow(_DailyRow r) {
-    Widget cell(Widget child) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: child,
-        );
-
     return TableRow(
       children: [
-        cell(Text(r.employee)),
-        cell(Text(r.timeIn)),
-        cell(Text(r.timeOut)),
-        cell(Text(r.hours)),
-        cell(Align(
-          alignment: Alignment.centerLeft,
-          child: _StatusChip(status: r.status),
-        )),
+        _cell(Text(r.employee)),
+        _cell(Text(r.timeIn)),
+        _cell(Text(r.timeOut)),
+        _cell(Text(r.hours)),
+        _cell(Align(alignment: Alignment.centerLeft, child: _StatusChip(status: r.status))),
       ],
     );
   }
+
+  Widget _cell(Widget child) => Padding(padding: const EdgeInsets.all(10), child: child);
 }
 
-class _DailyRow {
-  final String employee;
-  final String timeIn;
-  final String timeOut;
-  final String hours;
-  final String status;
+// --- Supporting Models & Widgets ---
 
+class _DailyRow {
+  final String employee, timeIn, timeOut, hours, status;
   _DailyRow(this.employee, this.timeIn, this.timeOut, this.hours, this.status);
 }
 
-class _TitleBar extends StatelessWidget {
-  const _TitleBar({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.72),
-        border: Border.all(color: Colors.black.withOpacity(0.20)),
-      ),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
-      ),
-    );
-  }
-}
-
 class _FilterCard extends StatelessWidget {
-  const _FilterCard({
-    required this.text,
-    required this.actionText,
-    required this.onTap,
-  });
-
-  final String text;
-  final String actionText;
+  const _FilterCard({required this.text, required this.actionText, required this.onTap});
+  final String text, actionText;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.10)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: Row(
         children: [
-          Expanded(child: Text(text)),
+          Expanded(child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600))),
           InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.tealSoft,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                actionText,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.teal,
-                ),
-              ),
+              decoration: BoxDecoration(color: AppTheme.tealSoft, borderRadius: BorderRadius.circular(8)),
+              child: Text(actionText, style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.teal)),
             ),
           ),
         ],
@@ -316,54 +358,28 @@ class _FilterCard extends StatelessWidget {
 }
 
 class _MiniStatCard extends StatelessWidget {
-  const _MiniStatCard({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
+  const _MiniStatCard({required this.label, required this.value, required this.color});
+  final String label, value;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 66,
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.16),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.16), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 12,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
           const Spacer(),
           Align(
             alignment: Alignment.bottomRight,
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-              ),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
           ),
         ],
       ),
@@ -383,13 +399,7 @@ class _TableCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.10)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: child,
     );
@@ -403,34 +413,15 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = status.toLowerCase().trim();
-
-    Color bg;
-    if (s == 'on time') {
-      bg = const Color(0xFF17A673);
-    } else if (s == 'late') {
-      bg = const Color(0xFFE74C3C);
-    } else if (s == 'absent') {
-      bg = const Color(0xFFF39C12);
-    } else if (s == 'overtime') {
-      bg = const Color(0xFF5DADE2);
-    } else {
-      bg = const Color(0xFFE74C3C); // missed out / alert
-    }
+    Color bg = const Color(0xFF17A673);
+    if (s == 'late' || s == 'missed out') bg = const Color(0xFFE74C3C);
+    else if (s == 'absent') bg = const Color(0xFFF39C12);
+    else if (s == 'overtime') bg = const Color(0xFF5DADE2);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        status,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
-          fontSize: 12,
-        ),
-      ),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+      child: Text(status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
     );
   }
 }

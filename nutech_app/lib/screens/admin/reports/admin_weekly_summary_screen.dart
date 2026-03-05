@@ -1,14 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:nutech_app/theme/app_theme.dart';
 import 'package:nutech_app/widgets/nutech_background.dart';
 
-class AdminWeeklySummaryScreen extends StatelessWidget {
+class AdminWeeklySummaryScreen extends StatefulWidget {
   const AdminWeeklySummaryScreen({super.key});
 
   static const route = '/admin/weekly-summary';
 
   @override
+  State<AdminWeeklySummaryScreen> createState() => _AdminWeeklySummaryScreenState();
+}
+
+class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
+  DateTime _selectedDate = DateTime(2026, 3, 14);
+  late Future<_WeeklyDataPackage?> _weeklyData;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the future to wait for Airtable data
+    _weeklyData = _fetchWeeklySummary();
+  }
+
+  // This method simulates the call to Airtable
+  Future<_WeeklyDataPackage?> _fetchWeeklySummary() async {
+    // Artificial delay to simulate network latency
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // IMPORTANT: To see the "No records" state, return null here
+    return null; 
+
+    /* Once your Airtable API is ready, it would return:
+    return _WeeklyDataPackage(
+      totalEmployees: '28',
+      presentCount: '4',
+      lateCount: '2',
+      absentCount: '28',
+      summaryRows: [
+        const _TotalsRow('Total Work Hours', '369.9 hrs'),
+        const _TotalsRow('Late Arrivals', '9'),
+        const _TotalsRow('Absence Cases', '5'),
+        const _TotalsRow('Overtime Hours', '69.9 hrs'),
+      ],
+    );
+    */
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppTheme.teal),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _weeklyData = _fetchWeeklySummary(); // Refresh the wait when date changes
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String formattedDate = DateFormat('MMMM d, yyyy').format(_selectedDate);
+
     return Scaffold(
       body: NutechBackground(
         bottomAsset: 'assets/images/ui/bottombackground2.png',
@@ -17,203 +80,252 @@ class AdminWeeklySummaryScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(
-                        child: Image.asset(
-                          'assets/images/branding/nutechlogo1.png',
-                          height: 64,
-                          fit: BoxFit.contain,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/images/branding/nutechlogo1.png',
+                            height: 64,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const _TitleBar(title: 'Weekly Summary Report'),
-                      const SizedBox(height: 12),
+                      _buildTitleBar(),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            _FilterCard(
+                              text: 'Date: $formattedDate',
+                              actionText: 'Change',
+                              onTap: () => _selectDate(context),
+                            ),
+                            const SizedBox(height: 20), 
+                            
+                            FutureBuilder<_WeeklyDataPackage?>(
+                              future: _weeklyData,
+                              builder: (context, snapshot) {
+                                // 1. LOADING: Show only the spinner
+                                // This prevents any numbers or boxes from appearing prematurely.
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.only(top: 120),
+                                    child: CircularProgressIndicator(color: AppTheme.teal),
+                                  );
+                                }
 
-                      _FilterCard(
-                        text: 'Date: March 14, 2026',
-                        actionText: 'Change',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 10),
-                      _FilterCard(
-                        text: 'Department: Sales Team',
-                        actionText: 'Change',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 14),
+                                // 2. ERROR STATE
+                                if (snapshot.hasError) {
+                                  return _buildStatusMessage("Could not connect to database");
+                                }
 
-                      Row(
-                        children: const [
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Total\nEmployees',
-                              value: '28',
-                              color: Color(0xFF1FA651),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Present',
-                              value: '4',
-                              color: Color(0xFF148A8F),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Late',
-                              value: '2',
-                              color: Color(0xFFE74C3C),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStatCard(
-                              label: 'Absent',
-                              value: '28',
-                              color: Color(0xFFF39C12),
-                            ),
-                          ),
-                        ],
-                      ),
+                                final dataPackage = snapshot.data;
 
-                      const SizedBox(height: 14),
-                      Divider(color: Colors.black.withOpacity(0.25), height: 24),
+                                // 3. EMPTY STATE: Matches your image_8539d3.png
+                                if (dataPackage == null || dataPackage.summaryRows.isEmpty) {
+                                  return Column(
+                                    children: [
+                                      _buildStatsRow(total: '0', p: '0', l: '0', a: '0'),
+                                      const SizedBox(height: 14),
+                                      _buildSectionDivider('Daily Report'), 
+                                      const SizedBox(height: 10),
+                                      _buildEmptyStateCard("No records found for this period"),
+                                    ],
+                                  );
+                                }
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: Colors.black.withOpacity(0.25),
-                              thickness: 1,
+                                // 4. DATA FOUND STATE
+                                return Column(
+                                  children: [
+                                    _buildStatsRow(
+                                      total: dataPackage.totalEmployees,
+                                      p: dataPackage.presentCount,
+                                      l: dataPackage.lateCount,
+                                      a: dataPackage.absentCount,
+                                    ), 
+                                    const SizedBox(height: 14),
+                                    _buildSectionDivider('Weekly Totals'),
+                                    const SizedBox(height: 10),
+                                    _TotalsCard(rows: dataPackage.summaryRows),
+                                  ],
+                                );
+                              },
                             ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              'Weekly Totals',
-                              style: TextStyle(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: Colors.black.withOpacity(0.25),
-                              thickness: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      _TotalsCard(
-                        rows: const [
-                          _TotalsRow('Total Work Hours', '369.9 hrs'),
-                          _TotalsRow('Late Arrivals', '9'),
-                          _TotalsRow('Absence Cases', '5'),
-                          _TotalsRow('Overtime Hours', '69.9 hrs'),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.teal,
-                            foregroundColor: Colors.white,
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Export  Report',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE6E7EA),
-                            foregroundColor: const Color(0xFF5B5F66),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Back',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildBottomActions(),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _TitleBar extends StatelessWidget {
-  const _TitleBar({required this.title});
-  final String title;
+  // --- UI Builders ---
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.72),
-        border: Border.all(color: Colors.black.withOpacity(0.20)),
+  Widget _buildEmptyStateCard(String message) {
+    return _TableCard(
+      child: Container(
+        height: 240, 
+        alignment: Alignment.center,
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.black.withOpacity(0.4),
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
       ),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+    );
+  }
+
+  Widget _buildStatusMessage(String message) {
+    return _TableCard(
+      child: Container(
+        height: 100,
+        alignment: Alignment.center,
+        child: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleBar() {
+    return Column(
+      children: [
+        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: const Center(
+            child: Text(
+              'Weekly Summary Report',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.black),
+            ),
+          ),
+        ),
+        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow({
+    required String total, 
+    required String p, 
+    required String l, 
+    required String a
+  }) {
+    return Row(
+      children: [
+        Expanded(child: _MiniStatCard(label: 'Total\nEmployees', value: total, color: const Color(0xFF1FA651))),
+        const SizedBox(width: 8),
+        Expanded(child: _MiniStatCard(label: 'Present', value: p, color: const Color(0xFF148A8F))),
+        const SizedBox(width: 8),
+        Expanded(child: _MiniStatCard(label: 'Late', value: l, color: const Color(0xFFE74C3C))),
+        const SizedBox(width: 8),
+        Expanded(child: _MiniStatCard(label: 'Absent', value: a, color: const Color(0xFFF39C12))),
+      ],
+    );
+  }
+
+  Widget _buildSectionDivider(String label) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.black.withOpacity(0.25), thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+        ),
+        Expanded(child: Divider(color: Colors.black.withOpacity(0.25), thickness: 1)),
+      ],
+    );
+  }
+
+  Widget _buildBottomActions() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.teal,
+                  foregroundColor: Colors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Export Report', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE6E7EA),
+                  foregroundColor: const Color(0xFF5B5F66),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _FilterCard extends StatelessWidget {
-  const _FilterCard({
-    required this.text,
-    required this.actionText,
-    required this.onTap,
-  });
+// --- Supporting Models ---
 
-  final String text;
-  final String actionText;
+class _WeeklyDataPackage {
+  final String totalEmployees;
+  final String presentCount;
+  final String lateCount;
+  final String absentCount;
+  final List<_TotalsRow> summaryRows;
+
+  _WeeklyDataPackage({
+    required this.totalEmployees,
+    required this.presentCount,
+    required this.lateCount,
+    required this.absentCount,
+    required this.summaryRows,
+  });
+}
+
+class _TotalsRow {
+  final String left, right;
+  const _TotalsRow(this.left, this.right);
+}
+
+// --- Reusable Components ---
+
+class _FilterCard extends StatelessWidget {
+  const _FilterCard({required this.text, required this.actionText, required this.onTap});
+  final String text, actionText;
   final VoidCallback onTap;
 
   @override
@@ -224,33 +336,18 @@ class _FilterCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.10)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: Row(
         children: [
-          Expanded(child: Text(text)),
+          Expanded(child: Text(text, style: const TextStyle(fontWeight: FontWeight.w500))),
           InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.tealSoft,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                actionText,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.teal,
-                ),
-              ),
+              decoration: BoxDecoration(color: AppTheme.tealSoft, borderRadius: BorderRadius.circular(8)),
+              child: Text(actionText, style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.teal)),
             ),
           ),
         ],
@@ -260,66 +357,33 @@ class _FilterCard extends StatelessWidget {
 }
 
 class _MiniStatCard extends StatelessWidget {
-  const _MiniStatCard({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
+  const _MiniStatCard({required this.label, required this.value, required this.color});
+  final String label, value;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.16),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.16), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
-              height: 1.05,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, height: 1.1)),
           const Spacer(),
           Align(
             alignment: Alignment.bottomRight,
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-              ),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
           ),
         ],
       ),
     );
   }
-}
-
-class _TotalsRow {
-  final String left;
-  final String right;
-  const _TotalsRow(this.left, this.right);
 }
 
 class _TotalsCard extends StatelessWidget {
@@ -333,13 +397,7 @@ class _TotalsCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.10)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 6))],
       ),
       child: Column(
         children: [
@@ -349,18 +407,36 @@ class _TotalsCard extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(child: Text(rows[i].left)),
-                  Text(
-                    rows[i].right,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
+                  Text(rows[i].right, style: const TextStyle(fontWeight: FontWeight.w800)),
                 ],
               ),
             ),
-            if (i != rows.length - 1)
-              Divider(height: 1, color: Colors.black.withOpacity(0.12)),
+            if (i != rows.length - 1) Divider(height: 1, color: Colors.black.withOpacity(0.12)),
           ],
         ],
       ),
     );
   }
+}
+
+class _TableCard extends StatelessWidget {
+  const _TableCard({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 6))
+          ],
+        ),
+        child: child,
+      );
 }

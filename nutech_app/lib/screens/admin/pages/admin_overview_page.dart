@@ -1,112 +1,165 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 
-class AdminOverviewPage extends StatelessWidget {
+class AdminOverviewPage extends StatefulWidget {
   const AdminOverviewPage({super.key});
 
   @override
+  State<AdminOverviewPage> createState() => _AdminOverviewPageState();
+}
+
+class _AdminOverviewPageState extends State<AdminOverviewPage> {
+  final List<dynamic> _todayLogs = []; 
+  final List<dynamic> _allEmployees = [];
+
+  @override
   Widget build(BuildContext context) {
+    final onTimeCount = _todayLogs.where((l) => l['status'] == 'on-time').length;
+    final lateCount = _todayLogs.where((l) => l['status'] == 'late').length;
+    final absentCount = _todayLogs.where((l) => l['status'] == 'absent').length;
+    final clockedInCount = _todayLogs.where((l) => l['isClockedIn'] == true).length;
+    final missingTimeoutCount = _todayLogs.where((l) => l['needsTimeout'] == true).length;
+    final totalEmployees = _allEmployees.length;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      // ✅ Removed horizontal padding to allow Dividers to hit the screen edges
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Logo
-          Image.asset(
-            'assets/images/branding/nutechlogo1.png',
-            width: 110,
-            height: 110,
-            fit: BoxFit.contain,
+          // ✅ Logo - Re-applied 20px horizontal padding
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              alignment: Alignment.center,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 100), 
+                child: Image.asset(
+                  'assets/images/branding/nutechlogo1.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Title pill
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.75),
-              border: Border.all(color: Colors.black.withOpacity(0.25)),
-            ),
-            child: const Center(
-              child: Text('Overview', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-            ),
+          // ✅ FIXED: Edge-to-edge lines with transparent background
+          Column(
+            children: [
+              Divider(
+                color: Colors.black.withOpacity(0.15), 
+                thickness: 1, 
+                height: 1,
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                // No decoration or color here = transparent (shows background)
+                child: Center(
+                  child: Text(
+                    'Overview', 
+                    style: TextStyle(
+                      fontSize: 26, 
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ),
+              Divider(
+                color: Colors.black.withOpacity(0.15), 
+                thickness: 1, 
+                height: 1,
+              ),
+            ],
           ),
 
           const SizedBox(height: 18),
 
-          // Top stats
-          const Row(
-            children: [
-              Expanded(child: _MiniStat(title: 'On Time Today', value: '85', isDanger: false)),
-              SizedBox(width: 12),
-              Expanded(child: _MiniStat(title: 'Late Today', value: '11', isDanger: true)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Row(
-            children: [
-              Expanded(child: _MiniStat(title: 'Absent Today', value: '2', isDanger: false)),
-              SizedBox(width: 12),
-              Expanded(child: _MiniStat(title: 'Clocked in Now', value: '29', isDanger: false)),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Pending / Missing
-          const _AlertRow(
-            iconAsset: 'assets/icons/admin/SandWatch.png',
-            title: 'Pending Approval',
-            value: '85',
-            badgeColor: AppTheme.teal,
-          ),
-          const SizedBox(height: 10),
-          const _AlertRow(
-            iconAsset: 'assets/icons/admin/TimeLimit.png',
-            title: 'Missing Time-Out',
-            value: '85',
-            badgeColor: Color(0xFFE24B33),
-          ),
-
-          const SizedBox(height: 22),
-
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text('Data Status', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-          ),
-          const SizedBox(height: 12),
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.black.withOpacity(0.12)),
-            ),
-            child: const Column(
+          // ✅ Main Content - Re-applied 20px horizontal padding
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
               children: [
-                _DataStatusRow(
-                  iconAsset: 'assets/icons/admin/Person-A.png',
-                  label: 'Total Employees',
-                  value: '85',
-                  valueColor: AppTheme.ink,
+                Row(
+                  children: [
+                    Expanded(child: _MiniStat(title: 'On Time Today', value: onTimeCount.toString(), isDanger: false)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _MiniStat(title: 'Late Today', value: lateCount.toString(), isDanger: true)),
+                  ],
                 ),
-                _DividerLine(),
-                _DataStatusRow(
-                  iconAsset: 'assets/icons/admin/Attendance.png',
-                  label: 'Absences This Week',
-                  value: '10',
-                  valueColor: Colors.red,
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _MiniStat(title: 'Absent Today', value: absentCount.toString(), isDanger: false)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _MiniStat(title: 'Clocked in Now', value: clockedInCount.toString(), isDanger: false)),
+                  ],
                 ),
-                _DividerLine(),
-                _DataStatusRow(
-                  iconAsset: 'assets/icons/admin/Overtime.png',
-                  label: 'Overtime Hours',
-                  value: '63',
-                  valueColor: AppTheme.ink,
+
+                const SizedBox(height: 14),
+
+                _AlertRow(
+                  iconAsset: 'assets/icons/admin/SandWatch.png',
+                  title: 'Pending Approval',
+                  value: '0', 
+                  badgeColor: AppTheme.teal,
                 ),
+                const SizedBox(height: 10),
+                _AlertRow(
+                  iconAsset: 'assets/icons/admin/TimeLimit.png',
+                  title: 'Missing Time-Out',
+                  value: missingTimeoutCount.toString(),
+                  badgeColor: const Color(0xFFE24B33),
+                ),
+
+                const SizedBox(height: 22),
+
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Data Status', 
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.black.withOpacity(0.12)),
+                  ),
+                  child: Column(
+                    children: [
+                      _DataStatusRow(
+                        iconAsset: 'assets/icons/admin/Person-A.png',
+                        label: 'Total Employees',
+                        value: totalEmployees.toString(),
+                        valueColor: AppTheme.ink,
+                      ),
+                      const _DividerLine(),
+                      const _DataStatusRow(
+                        iconAsset: 'assets/icons/admin/Attendance.png',
+                        label: 'Absences This Week',
+                        value: '0',
+                        valueColor: Colors.red,
+                      ),
+                      const _DividerLine(),
+                      const _DataStatusRow(
+                        iconAsset: 'assets/icons/admin/Overtime.png',
+                        label: 'Overtime Hours',
+                        value: '0',
+                        valueColor: AppTheme.ink,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
               ],
             ),
           ),
@@ -116,9 +169,10 @@ class AdminOverviewPage extends StatelessWidget {
   }
 }
 
+// --- Supporting Widgets (Remain the same but optimized for padding) ---
+
 class _MiniStat extends StatelessWidget {
   const _MiniStat({required this.title, required this.value, required this.isDanger});
-
   final String title;
   final String value;
   final bool isDanger;
@@ -126,23 +180,14 @@ class _MiniStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = isDanger ? const Color(0xFFE24B33) : AppTheme.teal;
-
     return Container(
       height: 72,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
-          ),
+          Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -150,13 +195,7 @@ class _MiniStat extends StatelessWidget {
 }
 
 class _AlertRow extends StatelessWidget {
-  const _AlertRow({
-    required this.iconAsset,
-    required this.title,
-    required this.value,
-    required this.badgeColor,
-  });
-
+  const _AlertRow({required this.iconAsset, required this.title, required this.value, required this.badgeColor});
   final String iconAsset;
   final String title;
   final String value;
@@ -170,13 +209,7 @@ class _AlertRow extends StatelessWidget {
         color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
@@ -188,10 +221,7 @@ class _AlertRow extends StatelessWidget {
             height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(8)),
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
           ),
         ],
       ),
@@ -200,13 +230,7 @@ class _AlertRow extends StatelessWidget {
 }
 
 class _DataStatusRow extends StatelessWidget {
-  const _DataStatusRow({
-    required this.iconAsset,
-    required this.label,
-    required this.value,
-    required this.valueColor,
-  });
-
+  const _DataStatusRow({required this.iconAsset, required this.label, required this.value, required this.valueColor});
   final String iconAsset;
   final String label;
   final String value;
@@ -230,7 +254,6 @@ class _DataStatusRow extends StatelessWidget {
 
 class _DividerLine extends StatelessWidget {
   const _DividerLine();
-
   @override
   Widget build(BuildContext context) {
     return Divider(height: 1, thickness: 1, color: Colors.black.withOpacity(0.08));

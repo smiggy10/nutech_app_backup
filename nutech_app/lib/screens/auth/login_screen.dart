@@ -6,7 +6,7 @@ import '../../widgets/nutech_text_field.dart';
 import '../../widgets/primary_button.dart';
 
 import '../home/home_shell.dart';
-import '../admin/admin_shell.dart'; // ✅ ADD THIS
+import '../admin/admin_shell.dart'; 
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
@@ -35,13 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = _userIdCtrl.text.trim();
     final pass = _passCtrl.text.trim();
 
-    // ✅ Frontend-only rule:
     if (user == 'admin' && pass == 'admin') {
       Navigator.pushReplacementNamed(context, AdminShell.route);
       return;
     }
 
-    // otherwise go to normal user dashboard
     Navigator.pushReplacementNamed(context, HomeShell.route);
   }
 
@@ -56,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 10),
 
-                // Logo (no container behind)
                 Image.asset(
                   'assets/images/branding/nutechlogo1.png',
                   width: 120,
@@ -104,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 14),
                 PrimaryButton(
                   label: 'Login',
-                  onPressed: _handleLogin, // ✅ HERE
+                  onPressed: _handleLogin,
                 ),
 
                 const SizedBox(height: 18),
@@ -121,34 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.black.withOpacity(0.25))),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('Or Sign in with', style: TextStyle(color: AppTheme.muted)),
-                    ),
-                    Expanded(child: Divider(color: Colors.black.withOpacity(0.25))),
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: 240,
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.g_mobiledata, size: 28),
-                    label: const Text('Google', style: TextStyle(fontWeight: FontWeight.w700)),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      side: BorderSide(color: Colors.black.withOpacity(0.10)),
-                    ),
-                  ),
-                ),
+                // ✅ Google Button and "Or sign in with" sections have been removed from here.
               ],
             ),
           ),
