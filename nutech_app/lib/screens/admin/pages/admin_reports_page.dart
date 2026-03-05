@@ -72,21 +72,7 @@ class AdminReportsPage extends StatelessWidget {
                       AdminLateAbsencesScreen.route,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _ReportButton(
-                    label: 'Export to CSV',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Frontend only: Export not connected yet.',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const Spacer(),
+                  const SizedBox(height: 180),
 
                   // ✅ Logout button
                   SizedBox(

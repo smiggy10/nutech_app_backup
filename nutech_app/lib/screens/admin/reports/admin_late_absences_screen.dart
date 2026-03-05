@@ -316,11 +316,18 @@ class _FilterCard extends StatelessWidget {
           InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(8),
-            child: Text(
-              actionText,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                color: AppTheme.teal,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.tealSoft,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                actionText,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.teal,
+                ),
               ),
             ),
           ),
@@ -344,7 +351,7 @@ class _MiniStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 64,
+      height: 76,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: color,
