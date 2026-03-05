@@ -10,16 +10,19 @@ class AdminOverviewPage extends StatefulWidget {
 }
 
 class _AdminOverviewPageState extends State<AdminOverviewPage> {
-  final List<dynamic> _todayLogs = []; 
+  final List<dynamic> _todayLogs = [];
   final List<dynamic> _allEmployees = [];
 
   @override
   Widget build(BuildContext context) {
-    final onTimeCount = _todayLogs.where((l) => l['status'] == 'on-time').length;
+    final onTimeCount = _todayLogs
+        .where((l) => l['status'] == 'on-time')
+        .length;
     final lateCount = _todayLogs.where((l) => l['status'] == 'late').length;
     final absentCount = _todayLogs.where((l) => l['status'] == 'absent').length;
-    final clockedInCount = _todayLogs.where((l) => l['isClockedIn'] == true).length;
-    final missingTimeoutCount = _todayLogs.where((l) => l['needsTimeout'] == true).length;
+    final clockedInCount = _todayLogs
+        .where((l) => l['isClockedIn'] == true)
+        .length;
     final totalEmployees = _allEmployees.length;
 
     return SingleChildScrollView(
@@ -35,7 +38,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               margin: const EdgeInsets.only(bottom: 10),
               alignment: Alignment.center,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 100), 
+                constraints: const BoxConstraints(maxHeight: 100),
                 child: Image.asset(
                   'assets/images/branding/nutechlogo1.png',
                   fit: BoxFit.contain,
@@ -50,8 +53,8 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
           Column(
             children: [
               Divider(
-                color: Colors.black.withOpacity(0.15), 
-                thickness: 1, 
+                color: Colors.black.withOpacity(0.15),
+                thickness: 1,
                 height: 1,
               ),
               Container(
@@ -60,9 +63,9 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                 // No decoration or color here = transparent (shows background)
                 child: Center(
                   child: Text(
-                    'Overview', 
+                    'Overview',
                     style: TextStyle(
-                      fontSize: 26, 
+                      fontSize: 26,
                       fontWeight: FontWeight.w800,
                       color: Colors.black.withOpacity(0.8),
                     ),
@@ -70,8 +73,8 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                 ),
               ),
               Divider(
-                color: Colors.black.withOpacity(0.15), 
-                thickness: 1, 
+                color: Colors.black.withOpacity(0.15),
+                thickness: 1,
                 height: 1,
               ),
             ],
@@ -86,17 +89,41 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _MiniStat(title: 'On Time Today', value: onTimeCount.toString(), isDanger: false)),
+                    Expanded(
+                      child: _MiniStat(
+                        title: 'On Time Today',
+                        value: onTimeCount.toString(),
+                        isDanger: false,
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _MiniStat(title: 'Late Today', value: lateCount.toString(), isDanger: true)),
+                    Expanded(
+                      child: _MiniStat(
+                        title: 'Late Today',
+                        value: lateCount.toString(),
+                        isDanger: true,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _MiniStat(title: 'Absent Today', value: absentCount.toString(), isDanger: false)),
+                    Expanded(
+                      child: _MiniStat(
+                        title: 'Absent Today',
+                        value: absentCount.toString(),
+                        isDanger: false,
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _MiniStat(title: 'Clocked in Now', value: clockedInCount.toString(), isDanger: false)),
+                    Expanded(
+                      child: _MiniStat(
+                        title: 'Clocked in Now',
+                        value: clockedInCount.toString(),
+                        isDanger: false,
+                      ),
+                    ),
                   ],
                 ),
 
@@ -105,7 +132,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                 _AlertRow(
                   iconAsset: 'assets/icons/admin/SandWatch.png',
                   title: 'Pending Approval',
-                  value: '0', 
+                  value: '0',
                   badgeColor: AppTheme.teal,
                   onTap: () {
                     Navigator.of(context).push(
@@ -115,20 +142,13 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                     );
                   },
                 ),
-                const SizedBox(height: 10),
-                _AlertRow(
-                  iconAsset: 'assets/icons/admin/TimeLimit.png',
-                  title: 'Missing Time-Out',
-                  value: missingTimeoutCount.toString(),
-                  badgeColor: const Color(0xFFE24B33),
-                ),
 
                 const SizedBox(height: 22),
 
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Data Status', 
+                    'Data Status',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -180,7 +200,11 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
 // --- Supporting Widgets (Remain the same but optimized for padding) ---
 
 class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.title, required this.value, required this.isDanger});
+  const _MiniStat({
+    required this.title,
+    required this.value,
+    required this.isDanger,
+  });
   final String title;
   final String value;
   final bool isDanger;
@@ -191,11 +215,29 @@ class _MiniStat extends StatelessWidget {
     return Container(
       height: 72,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Row(
         children: [
-          Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -218,29 +260,59 @@ class _AlertRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black.withOpacity(0.12)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Row(
-          children: [
-            Image.asset(iconAsset, width: 28, height: 28),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-            Container(
-              width: 64,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(8)),
-              child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        splashColor: Colors.black.withOpacity(0.1),
+        highlightColor: Colors.black.withOpacity(0.05),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.black.withOpacity(0.12)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.10),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Image.asset(iconAsset, width: 28, height: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Container(
+                width: 64,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -248,7 +320,12 @@ class _AlertRow extends StatelessWidget {
 }
 
 class _DataStatusRow extends StatelessWidget {
-  const _DataStatusRow({required this.iconAsset, required this.label, required this.value, required this.valueColor});
+  const _DataStatusRow({
+    required this.iconAsset,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
   final String iconAsset;
   final String label;
   final String value;
@@ -262,8 +339,20 @@ class _DataStatusRow extends StatelessWidget {
         children: [
           Image.asset(iconAsset, width: 26, height: 26),
           const SizedBox(width: 12),
-          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: valueColor)),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: valueColor,
+            ),
+          ),
         ],
       ),
     );
@@ -274,6 +363,10 @@ class _DividerLine extends StatelessWidget {
   const _DividerLine();
   @override
   Widget build(BuildContext context) {
-    return Divider(height: 1, thickness: 1, color: Colors.black.withOpacity(0.08));
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Colors.black.withOpacity(0.08),
+    );
   }
 }
