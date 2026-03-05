@@ -13,7 +13,8 @@ class AdminDailyAttendanceScreen extends StatefulWidget {
 }
 
 class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen> {
-  DateTime _selectedDate = DateTime(2026, 3, 14);
+  // FIXED: Initialized with DateTime.now() to ensure it reflects the actual current date
+  DateTime _selectedDate = DateTime.now();
   late Future<List<_DailyRow>> _attendanceData;
 
   @override
