@@ -14,18 +14,15 @@ class AdminLateAbsencesScreen extends StatefulWidget {
 
 class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
   late Future<_LAReportPackage?> _reportData;
-  // Changed from DateTimeRange to a single DateTime
   late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with the current date
     _selectedDate = DateTime.now();
     _reportData = _fetchLateAbsences();
   }
 
-  // Changed method name and logic to pick a single day
   Future<void> _changeDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -57,7 +54,6 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Formatted to show a single day: "March 5, 2026"
     final String dateString = DateFormat('MMMM d, yyyy').format(_selectedDate);
 
     return Scaffold(
@@ -72,17 +68,22 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // LOGO SECTION: Exact match to AdminOverviewPage
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/branding/nutechlogo1.png',
-                            height: 64,
-                            fit: BoxFit.contain,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 100),
+                            child: Image.asset(
+                              'assets/images/branding/nutechlogo1.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10), // Matched spacing
                       _buildTitleBar(),
                       const SizedBox(height: 18),
                       Padding(
@@ -90,7 +91,7 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
                         child: Column(
                           children: [
                             _FilterCard(
-                              text: 'Date: $dateString', // Changed label to Date
+                              text: 'Date: $dateString',
                               actionText: 'Change',
                               onTap: _changeDate,
                             ),
@@ -141,7 +142,6 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
     );
   }
 
-  // --- Helper to build the table ---
   Widget _buildTable(_LAReportPackage data) {
     return _TableCard(
       child: Table(
@@ -317,8 +317,7 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
   }
 }
 
-// --- Supporting Models & Components ---
-
+// Supporting Models remains the same as your input
 class _LAReportPackage {
   final String totalLate;
   final String totalAbsent;
