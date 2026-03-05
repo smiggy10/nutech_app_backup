@@ -15,23 +15,17 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final onTimeCount = _todayLogs
-        .where((l) => l['status'] == 'on-time')
-        .length;
+    final onTimeCount = _todayLogs.where((l) => l['status'] == 'on-time').length;
     final lateCount = _todayLogs.where((l) => l['status'] == 'late').length;
     final absentCount = _todayLogs.where((l) => l['status'] == 'absent').length;
-    final clockedInCount = _todayLogs
-        .where((l) => l['isClockedIn'] == true)
-        .length;
+    final clockedInCount = _todayLogs.where((l) => l['isClockedIn'] == true).length;
     final totalEmployees = _allEmployees.length;
 
     return SingleChildScrollView(
-      // ✅ Removed horizontal padding to allow Dividers to hit the screen edges
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ✅ Logo - Re-applied 20px horizontal padding
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -46,10 +40,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
-          // ✅ FIXED: Edge-to-edge lines with transparent background
           Column(
             children: [
               Divider(
@@ -60,7 +51,6 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                // No decoration or color here = transparent (shows background)
                 child: Center(
                   child: Text(
                     'Overview',
@@ -79,10 +69,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               ),
             ],
           ),
-
           const SizedBox(height: 18),
-
-          // ✅ Main Content - Re-applied 20px horizontal padding
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -126,9 +113,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
-
                 _AlertRow(
                   iconAsset: 'assets/icons/admin/SandWatch.png',
                   title: 'Pending Approval',
@@ -142,9 +127,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                     );
                   },
                 ),
-
                 const SizedBox(height: 22),
-
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -153,7 +136,6 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -196,8 +178,6 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
     );
   }
 }
-
-// --- Supporting Widgets (Remain the same but optimized for padding) ---
 
 class _MiniStat extends StatelessWidget {
   const _MiniStat({
@@ -244,7 +224,8 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
-class _AlertRow extends StatelessWidget {
+/// Updated _AlertRow with Hover Effect
+class _AlertRow extends StatefulWidget {
   const _AlertRow({
     required this.iconAsset,
     required this.title,
@@ -259,59 +240,78 @@ class _AlertRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<_AlertRow> createState() => _AlertRowState();
+}
+
+class _AlertRowState extends State<_AlertRow> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        splashColor: Colors.black.withOpacity(0.1),
-        highlightColor: Colors.black.withOpacity(0.05),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.black.withOpacity(0.12)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.10),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(10),
+          splashColor: Colors.black.withOpacity(0.1),
+          highlightColor: Colors.black.withOpacity(0.05),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              // Slightly darken background on hover
+              color: _isHovered 
+                  ? const Color(0xFFF5F5F5) 
+                  : Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _isHovered 
+                    ? AppTheme.teal.withOpacity(0.5) 
+                    : Colors.black.withOpacity(0.12)
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Image.asset(iconAsset, width: 28, height: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(_isHovered ? 0.15 : 0.10),
+                  blurRadius: _isHovered ? 14 : 10,
+                  offset: Offset(0, _isHovered ? 6 : 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Image.asset(widget.iconAsset, width: 28, height: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                width: 64,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
+                Container(
+                  width: 64,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: widget.badgeColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

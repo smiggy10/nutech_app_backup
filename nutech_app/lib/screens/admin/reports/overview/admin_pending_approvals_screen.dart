@@ -2,20 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:nutech_app/theme/app_theme.dart';
 import 'package:nutech_app/widgets/nutech_background.dart';
 
-class AdminPendingApprovalsScreen extends StatelessWidget {
+class AdminPendingApprovalsScreen extends StatefulWidget {
   const AdminPendingApprovalsScreen({super.key});
 
   static const route = '/admin/pending-approvals';
 
   @override
-  Widget build(BuildContext context) {
-    final employees = const [
-      'Maria Santos',
-      'David Lee',
-      'Rachel Adams',
-      'Mak Setevens',
-    ];
+  State<AdminPendingApprovalsScreen> createState() => _AdminPendingApprovalsScreenState();
+}
 
+class _AdminPendingApprovalsScreenState extends State<AdminPendingApprovalsScreen> {
+  // This list remains empty. No hardcoded "Maria Santos" or placeholders.
+  List<Map<String, dynamic>> _pendingEmployees = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Your fetch logic will go here. 
+    // Until it's called, _pendingEmployees remains [], and the UI shows nothing.
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: NutechBackground(
         bottomAsset: 'assets/images/ui/bottombackground2.png',
@@ -53,99 +62,16 @@ class AdminPendingApprovalsScreen extends StatelessWidget {
 
                       const SizedBox(height: 14),
 
-                      // Table
-                      _TableCard(
-                        child: Table(
-                          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                          border: TableBorder.all(
-                            color: Colors.black.withOpacity(0.18),
-                            width: 1,
-                          ),
-                          columnWidths: const {
-                            0: FixedColumnWidth(56), // avatar
-                            1: FlexColumnWidth(2.2), // name
-                            2: FlexColumnWidth(1.4), // button
-                          },
-                          children: [
-                            // Header row
-                            const TableRow(
-                              decoration: BoxDecoration(color: Color(0xFFE7E7E7)),
-                              children: [
-                                SizedBox(height: 44), // blank header cell
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                  child: Text(
-                                    'Employees',
-                                    style: TextStyle(fontWeight: FontWeight.w900),
-                                  ),
-                                ),
-                                SizedBox(height: 44), // blank header cell
-                              ],
-                            ),
-
-                            for (final name in employees) _row(name, () {}),
-                          ],
-                        ),
-                      ),
+                      // DATA CONTAINER
+                      // If there is no data, this renders as an empty space (nothing).
+                      _buildDataTable(), 
                     ],
                   ),
                 ),
               ),
 
-              // Bottom buttons
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // frontend-only placeholder
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Approved all (UI only)')),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.teal,
-                            foregroundColor: Colors.white,
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Approve All',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE6E7EA),
-                            foregroundColor: const Color(0xFF5B5F66),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Back',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Bottom Action Buttons
+              _buildBottomButtons(),
             ],
           ),
         ),
@@ -153,54 +79,136 @@ class AdminPendingApprovalsScreen extends StatelessWidget {
     );
   }
 
-  static TableRow _row(String name, VoidCallback onApprove) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Center(
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.black,
-              child: CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, color: Colors.black.withOpacity(0.55), size: 18),
+  // This function now returns NOTHING if there is no data.
+  Widget _buildDataTable() {
+    if (_pendingEmployees.isEmpty) {
+      return const SizedBox.shrink(); // This ensures the container and names don't show at all.
+    }
+
+    return _TableCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Employees',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+            ),
+          ),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _pendingEmployees.length,
+            separatorBuilder: (context, index) => Divider(
+              color: Colors.black.withOpacity(0.05),
+              indent: 16,
+              endIndent: 16,
+            ),
+            itemBuilder: (context, index) {
+              final employee = _pendingEmployees[index];
+              return _employeeRow(
+                employee['name'] ?? '',
+                employee['photoUrl'], 
+                () => _handleApprove(employee['id']),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _employeeRow(String name, String? photoUrl, VoidCallback onApprove) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: const Color(0xFFE0E0E0),
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null 
+              ? Icon(Icons.person, color: Colors.black.withOpacity(0.3)) 
+              : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
+          ),
+          SizedBox(
+            height: 34,
+            width: 90,
+            child: ElevatedButton(
+              onPressed: onApprove,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.teal,
+                padding: EdgeInsets.zero,
+                shape: const StadiumBorder(),
+              ),
+              child: const Text(
+                'Approve',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          child: Text(name),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Align(
-            alignment: Alignment.centerRight,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+      child: Row(
+        children: [
+          Expanded(
             child: SizedBox(
-              height: 34,
-              width: 110,
+              height: 52,
               child: ElevatedButton(
-                onPressed: onApprove,
+                onPressed: _pendingEmployees.isEmpty ? null : () {
+                  // Approve All logic
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.teal,
-                  foregroundColor: Colors.white,
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: const Text(
-                  'Approve',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  'Approve All',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE6E7EA),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text(
+                  'Back',
+                  style: TextStyle(color: Color(0xFF5B5F66), fontWeight: FontWeight.w900, fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _handleApprove(String id) {
+    // Logic for Airtable
   }
 }
 
@@ -211,20 +219,21 @@ class _TableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.black.withOpacity(0.10)),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.10),
+            color: Colors.black.withOpacity(0.06),
             blurRadius: 10,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: child,
+      ),
     );
   }
 }
