@@ -14,34 +14,24 @@ class AdminLateAbsencesScreen extends StatefulWidget {
 
 class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
   late Future<_LAReportPackage?> _reportData;
-  late DateTimeRange _selectedRange;
+  // Changed from DateTimeRange to a single DateTime
+  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with the current week of 2026 starting on Sunday
-    _selectedRange = _getWeekRange(DateTime.now());
+    // Initialize with the current date
+    _selectedDate = DateTime.now();
     _reportData = _fetchLateAbsences();
   }
 
-  /// Snaps any date to a Sunday-to-Saturday range
-  DateTimeRange _getWeekRange(DateTime date) {
-    // weekday: Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6, Sun=7
-    // If it's Sunday (7), we want to subtract 0. 
-    // Otherwise, we subtract the current weekday value.
-    int daysToSubtract = date.weekday % 7; 
-    DateTime start = DateTime(date.year, date.month, date.day).subtract(Duration(days: daysToSubtract));
-    DateTime end = start.add(const Duration(days: 6));
-    return DateTimeRange(start: start, end: end);
-  }
-
-  Future<void> _changeWeek() async {
-    final DateTimeRange? picked = await showDateRangePicker(
+  // Changed method name and logic to pick a single day
+  Future<void> _changeDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialDateRange: _selectedRange,
+      initialDate: _selectedDate,
       firstDate: DateTime(2025),
       lastDate: DateTime(2027),
-      helpText: 'Select a date to pick that week (Sun-Sat)',
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -52,10 +42,9 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
       },
     );
 
-    if (picked != null) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        // Snap the selection to Sunday-Saturday
-        _selectedRange = _getWeekRange(picked.start);
+        _selectedDate = picked;
         _reportData = _fetchLateAbsences();
       });
     }
@@ -63,14 +52,13 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
 
   Future<_LAReportPackage?> _fetchLateAbsences() async {
     await Future.delayed(const Duration(milliseconds: 1500));
-    // Data fetching logic would go here
     return null; 
   }
 
   @override
   Widget build(BuildContext context) {
-    final String dateString = 
-        "${DateFormat('MMMM d').format(_selectedRange.start)} - ${DateFormat('MMMM d, yyyy').format(_selectedRange.end)}";
+    // Formatted to show a single day: "March 5, 2026"
+    final String dateString = DateFormat('MMMM d, yyyy').format(_selectedDate);
 
     return Scaffold(
       body: NutechBackground(
@@ -102,9 +90,9 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
                         child: Column(
                           children: [
                             _FilterCard(
-                              text: 'Date Range: $dateString',
+                              text: 'Date: $dateString', // Changed label to Date
                               actionText: 'Change',
-                              onTap: _changeWeek,
+                              onTap: _changeDate,
                             ),
                             const SizedBox(height: 20),
                             FutureBuilder<_LAReportPackage?>(
@@ -124,7 +112,7 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
                                     children: [
                                       _buildStatsRow(late: '0', absent: '0'),
                                       const SizedBox(height: 20),
-                                      _buildEmptyStateCard("No records found for this period"),
+                                      _buildEmptyStateCard("No records found for this date"),
                                     ],
                                   );
                                 }
@@ -133,24 +121,7 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
                                   children: [
                                     _buildStatsRow(late: data.totalLate, absent: data.totalAbsent),
                                     const SizedBox(height: 20),
-                                    _TableCard(
-                                      child: Table(
-                                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                                        border: TableBorder.all(
-                                          color: Colors.black.withOpacity(0.18),
-                                          width: 1,
-                                        ),
-                                        columnWidths: const {
-                                          0: FlexColumnWidth(2.6),
-                                          1: FlexColumnWidth(1.0),
-                                          2: FlexColumnWidth(1.0),
-                                        },
-                                        children: [
-                                          _headerRow(),
-                                          for (final r in data.rows) _dataRow(r),
-                                        ],
-                                      ),
-                                    ),
+                                    _buildTable(data),
                                   ],
                                 );
                               },
@@ -166,6 +137,28 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // --- Helper to build the table ---
+  Widget _buildTable(_LAReportPackage data) {
+    return _TableCard(
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        border: TableBorder.all(
+          color: Colors.black.withOpacity(0.18),
+          width: 1,
+        ),
+        columnWidths: const {
+          0: FlexColumnWidth(2.6),
+          1: FlexColumnWidth(1.0),
+          2: FlexColumnWidth(1.0),
+        },
+        children: [
+          _headerRow(),
+          for (final r in data.rows) _dataRow(r),
+        ],
       ),
     );
   }
@@ -323,6 +316,8 @@ class _AdminLateAbsencesScreenState extends State<AdminLateAbsencesScreen> {
     );
   }
 }
+
+// --- Supporting Models & Components ---
 
 class _LAReportPackage {
   final String totalLate;
