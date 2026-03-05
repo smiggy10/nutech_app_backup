@@ -25,6 +25,8 @@ class NutechApp extends StatelessWidget {
     return DevicePreview.appBuilder(
       context,
       MaterialApp(
+        useInheritedMediaQuery: true,
+        locale: DevicePreview.locale(context),
         debugShowCheckedModeBanner: false,
         title: 'Nutech',
         theme: AppTheme.light,
