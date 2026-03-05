@@ -10,8 +10,7 @@ class PendingApprovalsPage extends StatefulWidget {
 }
 
 class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
-  // Hardcoded names removed. This list starts empty.
-  // It will hold Maps like {'name': '...', 'photoUrl': '...'} from Airtable.
+  // This list starts empty and will be populated via Airtable
   List<Map<String, dynamic>> _employees = [];
 
   @override
@@ -34,20 +33,53 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // MATCHED LOGO SECTION: Exact same structure as Overview Page
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/branding/nutechlogo1.png',
-                            height: 64,
-                            fit: BoxFit.contain,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 100),
+                            child: Image.asset(
+                              'assets/images/branding/nutechlogo1.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
 
-                      _buildTitleBar(),
+                      // MATCHED HEADER SECTION: Exact same divider and title style
+                      Column(
+                        children: [
+                          Divider(
+                            color: Colors.black.withOpacity(0.15),
+                            thickness: 1,
+                            height: 1,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: Text(
+                                'Pending Approvals',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black.withOpacity(0.8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black.withOpacity(0.15),
+                            thickness: 1,
+                            height: 1,
+                          ),
+                        ],
+                      ),
 
                       const SizedBox(height: 20),
 
@@ -57,23 +89,18 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: _TableCard(
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: const [
-                                    SizedBox(width: 40),
-                                    Expanded(
-                                      child: Text(
-                                        'Employees',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 16,
-                                        ),
-                                      ),
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 45, bottom: 10),
+                                  child: Text(
+                                    'Employees',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
                                     ),
-                                    SizedBox(width: 90),
-                                  ],
+                                  ),
                                 ),
-                                const SizedBox(height: 10),
                                 ListView.separated(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
@@ -117,7 +144,7 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.black54,
+            backgroundColor: const Color(0xFF5B5F66),
             backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
             child: photoUrl == null
                 ? const Icon(Icons.person, color: Colors.white, size: 18)
@@ -144,7 +171,7 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
                 ),
               ),
               onPressed: () {
-                // Approve logic
+                // Individual Approve logic
               },
               child: const Text(
                 'Approve',
@@ -161,25 +188,6 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
     );
   }
 
-  Widget _buildTitleBar() {
-    return Column(
-      children: [
-        Divider(color: Colors.black.withOpacity(0.15), thickness: 1),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Pending Approvals',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        Divider(color: Colors.black.withOpacity(0.15), thickness: 1),
-      ],
-    );
-  }
-
   Widget _buildBottomActions(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
@@ -193,7 +201,7 @@ class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.teal,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledBackgroundColor: const Color(0xFFD1D3D9),
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -247,16 +255,16 @@ class _TableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        border: Border.all(color: Colors.black.withOpacity(0.12)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           )
         ],
       ),
