@@ -134,15 +134,19 @@ class _SectionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFE9ECEF),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white.withOpacity(0.75),
+        border: Border.all(color: Colors.black.withOpacity(0.25)),
       ),
-      child: Center(
+      child: const Center(
         child: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
+          'Attendance Monitoring',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
