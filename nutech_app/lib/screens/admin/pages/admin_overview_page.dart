@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import 'pending_approvals_page.dart';
 
 class AdminOverviewPage extends StatefulWidget {
   const AdminOverviewPage({super.key});
@@ -106,6 +107,13 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                   title: 'Pending Approval',
                   value: '0', 
                   badgeColor: AppTheme.teal,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PendingApprovalsPage(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 10),
                 _AlertRow(
@@ -195,35 +203,45 @@ class _MiniStat extends StatelessWidget {
 }
 
 class _AlertRow extends StatelessWidget {
-  const _AlertRow({required this.iconAsset, required this.title, required this.value, required this.badgeColor});
+  const _AlertRow({
+    required this.iconAsset,
+    required this.title,
+    required this.value,
+    required this.badgeColor,
+    this.onTap,
+  });
   final String iconAsset;
   final String title;
   final String value;
   final Color badgeColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.black.withOpacity(0.12)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Row(
-        children: [
-          Image.asset(iconAsset, width: 28, height: 28),
-          const SizedBox(width: 12),
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-          Container(
-            width: 64,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(8)),
-            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black.withOpacity(0.12)),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          children: [
+            Image.asset(iconAsset, width: 28, height: 28),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+            Container(
+              width: 64,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(8)),
+              child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        ),
       ),
     );
   }
