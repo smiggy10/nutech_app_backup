@@ -31,6 +31,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/icons/admin/
+    - assets/admin/
     - assets/images/ui/headerdesign.png
     - assets/images/ui/bottombackground1.png
     - assets/images/ui/bottombackground2.png

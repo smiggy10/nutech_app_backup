@@ -33,6 +33,8 @@ class _HomeShellState extends State<HomeShell> {
 
     return Scaffold(
       body: NutechBackground(
+        // ✅ dashboard/logs/profile should use the wave background.
+        bottomAsset: 'assets/images/ui/bottombackground2.png',
         showTopAccents: _index != 2,
         child: SafeArea(child: pages[_index]),
       ),
@@ -54,6 +56,7 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        // Decorative bottom background
         Positioned.fill(
           child: IgnorePointer(
             child: Image.asset(
@@ -62,6 +65,7 @@ class _BottomNav extends StatelessWidget {
             ),
           ),
         ),
+
         NavigationBar(
           selectedIndex: index,
           onDestinationSelected: onTap,
@@ -69,38 +73,24 @@ class _BottomNav extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           indicatorColor: AppTheme.tealSoft,
           destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.home_outlined),
+            NavigationDestination(
+              icon: const Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home_outlined, color: AppTheme.teal),
               label: 'Home',
             ),
             NavigationDestination(
               icon: Image.asset('assets/icons/logs.png', width: 26, height: 26),
               selectedIcon: ColorFiltered(
-                colorFilter: const ColorFilter.mode(
-                  AppTheme.teal,
-                  BlendMode.srcIn,
-                ),
-                child: Image.asset(
-                  'assets/icons/logs.png',
-                  width: 26,
-                  height: 26,
-                ),
+                colorFilter: const ColorFilter.mode(AppTheme.teal, BlendMode.srcIn),
+                child: Image.asset('assets/icons/logs.png', width: 26, height: 26),
               ),
               label: 'Logs',
             ),
             NavigationDestination(
               icon: Image.asset('assets/icons/user.png', width: 26, height: 26),
               selectedIcon: ColorFiltered(
-                colorFilter: const ColorFilter.mode(
-                  AppTheme.teal,
-                  BlendMode.srcIn,
-                ),
-                child: Image.asset(
-                  'assets/icons/user.png',
-                  width: 26,
-                  height: 26,
-                ),
+                colorFilter: const ColorFilter.mode(AppTheme.teal, BlendMode.srcIn),
+                child: Image.asset('assets/icons/user.png', width: 26, height: 26),
               ),
               label: 'Profile',
             ),
