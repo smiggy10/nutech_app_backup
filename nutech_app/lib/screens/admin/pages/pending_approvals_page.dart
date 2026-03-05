@@ -2,18 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:nutech_app/theme/app_theme.dart';
 import 'package:nutech_app/widgets/nutech_background.dart';
 
-class PendingApprovalsPage extends StatelessWidget {
+class PendingApprovalsPage extends StatefulWidget {
   const PendingApprovalsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final employees = <String>[
-      'Maria Santos',
-      'David Lee',
-      'Rachel Adams',
-      'Mak Stevvens',
-    ];
+  State<PendingApprovalsPage> createState() => _PendingApprovalsPageState();
+}
 
+class _PendingApprovalsPageState extends State<PendingApprovalsPage> {
+  // Hardcoded names removed. This list starts empty.
+  // It will hold Maps like {'name': '...', 'photoUrl': '...'} from Airtable.
+  List<Map<String, dynamic>> _employees = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Your Airtable fetch logic will populate _employees here.
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: NutechBackground(
         bottomAsset: 'assets/images/ui/bottombackground2.png',
@@ -43,118 +51,112 @@ class PendingApprovalsPage extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _TableCard(
-                          child: Column(
-                            children: [
-                              Row(
-                                children: const [
-                                  SizedBox(width: 40),
-                                  Expanded(
-                                    child: Text(
-                                      'Employees',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 16,
+                      // DYNAMIC SECTION: Only shows the Card if employees exist.
+                      if (_employees.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _TableCard(
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: const [
+                                    SizedBox(width: 40),
+                                    Expanded(
+                                      child: Text(
+                                        'Employees',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 16,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(width: 90),
-                                ],
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: employees.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  final name = employees[index];
-
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color:
-                                            Colors.black.withOpacity(0.08),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const CircleAvatar(
-                                          radius: 16,
-                                          backgroundColor: Colors.black54,
-                                          child: Icon(
-                                            Icons.person,
-                                            color: Colors.white,
-                                            size: 18,
-                                          ),
-                                        ),
-
-                                        const SizedBox(width: 12),
-
-                                        Expanded(
-                                          child: Text(
-                                            name,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-
-                                        SizedBox(
-                                          width: 90,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppTheme.teal,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8),
-                                              shape:
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              // Approve single employee
-                                            },
-                                            child: const Text(
-                                              'Approve',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                                    SizedBox(width: 90),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _employees.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 8),
+                                  itemBuilder: (context, index) {
+                                    final emp = _employees[index];
+                                    return _buildEmployeeRow(
+                                      emp['name'] ?? '',
+                                      emp['photoUrl'],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
               ),
-
               _buildBottomActions(context),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmployeeRow(String name, String? photoUrl) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.black.withOpacity(0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: Colors.black54,
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
+                ? const Icon(Icons.person, color: Colors.white, size: 18)
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.teal,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () {
+                // Approve logic
+              },
+              child: const Text(
+                'Approve',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -187,12 +189,11 @@ class PendingApprovalsPage extends StatelessWidget {
             child: SizedBox(
               height: 52,
               child: ElevatedButton(
-                onPressed: () {
-                  // Approve all employees
-                },
+                onPressed: _employees.isEmpty ? null : () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.teal,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -208,9 +209,7 @@ class PendingApprovalsPage extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: SizedBox(
               height: 52,
