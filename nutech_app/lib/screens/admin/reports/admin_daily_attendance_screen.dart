@@ -24,20 +24,8 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
 
   Future<List<_DailyRow>> _fetchAttendanceData() async {
     await Future.delayed(const Duration(milliseconds: 500));
-
     // TO SHOW "NO RECORDS FOUND": Return an empty list []
     return [];
-
-    /* // TO SHOW DATA: Uncomment this block later
-    return [
-      _DailyRow('Juan Reynolds', '08:05 AM', '05:12 PM', '9.1', 'On Time'),
-      _DailyRow('Maria Santos', '08:30 AM', '05:00 PM', '7.5', 'Late'),
-      _DailyRow('David Lee', '--', '--', '--', 'Absent'),
-      _DailyRow('Rachel Adams', '07:55 AM', '06:30 PM', '10.5', 'Overtime'),
-      _DailyRow('Michael Torres', '09:00 AM', '--', '--', 'Missed Out'),
-      _DailyRow('Emily Wong', '08:15 AM', '05:15 PM', '8.0', 'On Time'),
-    ];
-    */
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -77,17 +65,22 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // LOGO SECTION: Exact match to AdminOverviewPage
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/branding/nutechlogo1.png',
-                            height: 64,
-                            fit: BoxFit.contain,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 100),
+                            child: Image.asset(
+                              'assets/images/branding/nutechlogo1.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       _buildTitleSection(),
                       const SizedBox(height: 24),
                       Padding(
@@ -117,7 +110,7 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
                                     children: [
                                       _buildStatsRow('0', '0', '0', '0'),
                                       const SizedBox(height: 14),
-                                      _buildSectionDivider(), // Styled Divider applied here
+                                      _buildSectionDivider(),
                                       const SizedBox(height: 10),
                                       _TableCard(
                                         child: Container(
@@ -141,7 +134,7 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
                                   children: [
                                     _buildStatsRow('28', '4', '2', '28'),
                                     const SizedBox(height: 14),
-                                    _buildSectionDivider(), // Styled Divider applied here
+                                    _buildSectionDivider(),
                                     const SizedBox(height: 10),
                                     _TableCard(child: _buildDataTable(data)),
                                   ],
@@ -163,8 +156,6 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
     );
   }
 
-  // --- Helper Layout Widgets ---
-
   Widget _buildTitleSection() {
     return Column(
       children: [
@@ -184,32 +175,18 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
     );
   }
 
-  // NEW: Styled Divider with text in center
   Widget _buildSectionDivider() {
     return Row(
       children: [
-        Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.25),
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: Colors.black.withOpacity(0.25), thickness: 1)),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Text(
             'Daily Report',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w800, color: Colors.black),
           ),
         ),
-        Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.25),
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: Colors.black.withOpacity(0.25), thickness: 1)),
       ],
     );
   }
@@ -317,8 +294,6 @@ class _AdminDailyAttendanceScreenState extends State<AdminDailyAttendanceScreen>
 
   Widget _cell(Widget child) => Padding(padding: const EdgeInsets.all(10), child: child);
 }
-
-// --- Supporting Models & Widgets ---
 
 class _DailyRow {
   final String employee, timeIn, timeOut, hours, status;
