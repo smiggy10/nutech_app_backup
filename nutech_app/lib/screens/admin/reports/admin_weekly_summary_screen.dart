@@ -13,64 +13,59 @@ class AdminWeeklySummaryScreen extends StatefulWidget {
 }
 
 class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
-  DateTime _selectedDate = DateTime(2026, 3, 14);
+  // Use DateTimeRange to store a start and end date
+  DateTimeRange _selectedRange = DateTimeRange(
+    start: DateTime.now().subtract(const Duration(days: 7)),
+    end: DateTime.now(),
+  );
+  
   late Future<_WeeklyDataPackage?> _weeklyData;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the future to wait for Airtable data
     _weeklyData = _fetchWeeklySummary();
   }
 
-  // This method simulates the call to Airtable
   Future<_WeeklyDataPackage?> _fetchWeeklySummary() async {
-    // Artificial delay to simulate network latency
     await Future.delayed(const Duration(milliseconds: 1500));
-
-    // IMPORTANT: To see the "No records" state, return null here
+    // Simulated return null for "No Records" state
     return null; 
-
-    /* Once your Airtable API is ready, it would return:
-    return _WeeklyDataPackage(
-      totalEmployees: '28',
-      presentCount: '4',
-      lateCount: '2',
-      absentCount: '28',
-      summaryRows: [
-        const _TotalsRow('Total Work Hours', '369.9 hrs'),
-        const _TotalsRow('Late Arrivals', '9'),
-        const _TotalsRow('Absence Cases', '5'),
-        const _TotalsRow('Overtime Hours', '69.9 hrs'),
-      ],
-    );
-    */
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  // Updated to pick a range instead of a single day
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDateRange: _selectedRange,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: AppTheme.teal),
+          colorScheme: const ColorScheme.light(
+            primary: AppTheme.teal,
+            onPrimary: Colors.white,
+            onSurface: Colors.black,
+          ),
         ),
         child: child!,
       ),
     );
-    if (picked != null && picked != _selectedDate) {
+
+    if (picked != null && picked != _selectedRange) {
       setState(() {
-        _selectedDate = picked;
-        _weeklyData = _fetchWeeklySummary(); // Refresh the wait when date changes
+        _selectedRange = picked;
+        _weeklyData = _fetchWeeklySummary();
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('MMMM d, yyyy').format(_selectedDate);
+    // Format the range for display: "Mar 7 - Mar 14, 2026"
+    final df = DateFormat('MMM d');
+    final yf = DateFormat('yyyy');
+    String rangeText = "${df.format(_selectedRange.start)} - ${df.format(_selectedRange.end)}, ${yf.format(_selectedRange.end)}";
 
     return Scaffold(
       body: NutechBackground(
@@ -84,35 +79,61 @@ class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // MATCHED LOGO SECTION: From Overview Page
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/branding/nutechlogo1.png',
-                            height: 64,
-                            fit: BoxFit.contain,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 100),
+                            child: Image.asset(
+                              'assets/images/branding/nutechlogo1.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      _buildTitleBar(),
+                      
+                      const SizedBox(height: 10),
+                      
+                      // MATCHED TITLE BAR: From Overview Page
+                      Column(
+                        children: [
+                          Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: Text(
+                                'Weekly Summary Report',
+                                style: TextStyle(
+                                  fontSize: 26, 
+                                  fontWeight: FontWeight.w800, 
+                                  color: Colors.black.withOpacity(0.8)
+                                ),
+                              ),
+                            ),
+                          ),
+                          Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
+                        ],
+                      ),
+
                       const SizedBox(height: 24),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
                             _FilterCard(
-                              text: 'Date: $formattedDate',
+                              text: 'Period: $rangeText',
                               actionText: 'Change',
-                              onTap: () => _selectDate(context),
+                              onTap: () => _selectDateRange(context),
                             ),
                             const SizedBox(height: 20), 
                             
                             FutureBuilder<_WeeklyDataPackage?>(
                               future: _weeklyData,
                               builder: (context, snapshot) {
-                                // 1. LOADING: Show only the spinner
-                                // This prevents any numbers or boxes from appearing prematurely.
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return const Padding(
                                     padding: EdgeInsets.only(top: 120),
@@ -120,14 +141,12 @@ class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
                                   );
                                 }
 
-                                // 2. ERROR STATE
                                 if (snapshot.hasError) {
                                   return _buildStatusMessage("Could not connect to database");
                                 }
 
                                 final dataPackage = snapshot.data;
 
-                                // 3. EMPTY STATE: Matches your image_8539d3.png
                                 if (dataPackage == null || dataPackage.summaryRows.isEmpty) {
                                   return Column(
                                     children: [
@@ -140,7 +159,6 @@ class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
                                   );
                                 }
 
-                                // 4. DATA FOUND STATE
                                 return Column(
                                   children: [
                                     _buildStatsRow(
@@ -202,25 +220,6 @@ class _AdminWeeklySummaryScreenState extends State<AdminWeeklySummaryScreen> {
           style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent),
         ),
       ),
-    );
-  }
-
-  Widget _buildTitleBar() {
-    return Column(
-      children: [
-        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: const Center(
-            child: Text(
-              'Weekly Summary Report',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.black),
-            ),
-          ),
-        ),
-        Divider(color: Colors.black.withOpacity(0.15), thickness: 1, height: 1),
-      ],
     );
   }
 
@@ -427,9 +426,9 @@ class _TableCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black.withOpacity(0.1)),
+          border: Border.all(color: Colors.black.withOpacity(0.12)),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -437,6 +436,6 @@ class _TableCard extends StatelessWidget {
                 offset: const Offset(0, 6))
           ],
         ),
-        child: child,
+        child: child, 
       );
 }
