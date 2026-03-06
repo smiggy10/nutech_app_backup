@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
 
+import 'screens/splash/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/register_password_screen.dart';
@@ -30,8 +31,9 @@ class NutechApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Nutech',
         theme: AppTheme.light,
-        initialRoute: LoginScreen.route,
+        initialRoute: SplashScreen.route,
         routes: {
+          SplashScreen.route: (_) => const SplashScreen(),
           // Auth
           LoginScreen.route: (_) => const LoginScreen(),
           SignupScreen.route: (_) => const SignupScreen(),
